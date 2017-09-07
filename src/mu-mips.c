@@ -9,7 +9,7 @@
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
 /***************************************************************/
-void help() {        
+void help() {
 	printf("------------------------------------------------------------------\n\n");
 	printf("\t**********MU-MIPS Help MENU**********\n\n");
 	printf("sim\t-- simulate program to completion \n");
@@ -66,7 +66,7 @@ void mem_write_32(uint32_t address, uint32_t value)
 /***************************************************************/
 /* Execute one cycle                                                                                                              */
 /***************************************************************/
-void cycle() {                                                
+void cycle() {
 	handle_instruction();
 	CURRENT_STATE = NEXT_STATE;
 	INSTRUCTION_COUNT++;
@@ -75,8 +75,8 @@ void cycle() {
 /***************************************************************/
 /* Simulate MIPS for n cycles                                                                                       */
 /***************************************************************/
-void run(int num_cycles) {                                      
-	
+void run(int num_cycles) {
+
 	if (RUN_FLAG == FALSE) {
 		printf("Simulation Stopped\n\n");
 		return;
@@ -96,7 +96,7 @@ void run(int num_cycles) {
 /***************************************************************/
 /* simulate to completion                                                                                               */
 /***************************************************************/
-void runAll() {                                                     
+void runAll() {
 	if (RUN_FLAG == FALSE) {
 		printf("Simulation Stopped.\n\n");
 		return;
@@ -109,10 +109,10 @@ void runAll() {
 	printf("Simulation Finished.\n\n");
 }
 
-/***************************************************************/ 
+/***************************************************************/
 /* Dump a word-aligned region of memory to the terminal                              */
 /***************************************************************/
-void mdump(uint32_t start, uint32_t stop) {          
+void mdump(uint32_t start, uint32_t stop) {
 	uint32_t address;
 
 	printf("-------------------------------------------------------------\n");
@@ -126,10 +126,10 @@ void mdump(uint32_t start, uint32_t stop) {
 }
 
 /***************************************************************/
-/* Dump current values of registers to the teminal                                              */   
+/* Dump current values of registers to the teminal                                              */
 /***************************************************************/
-void rdump() {                               
-	int i; 
+void rdump() {
+	int i;
 	printf("-------------------------------------\n");
 	printf("Dumping Register Content\n");
 	printf("-------------------------------------\n");
@@ -148,9 +148,9 @@ void rdump() {
 }
 
 /***************************************************************/
-/* Read a command from standard input.                                                               */  
+/* Read a command from standard input.                                                               */
 /***************************************************************/
-void handle_command() {                         
+void handle_command() {
 	char buffer[20];
 	uint32_t start, stop, cycles;
 	uint32_t register_no;
@@ -166,7 +166,7 @@ void handle_command() {
 	switch(buffer[0]) {
 		case 'S':
 		case 's':
-			runAll(); 
+			runAll();
 			break;
 		case 'M':
 		case 'm':
@@ -211,8 +211,8 @@ void handle_command() {
 			if (scanf("%i", &hi_reg_value) != 1){
 				break;
 			}
-			CURRENT_STATE.HI = hi_reg_value; 
-			NEXT_STATE.HI = hi_reg_value; 
+			CURRENT_STATE.HI = hi_reg_value;
+			NEXT_STATE.HI = hi_reg_value;
 			break;
 		case 'L':
 		case 'l':
@@ -224,7 +224,7 @@ void handle_command() {
 			break;
 		case 'P':
 		case 'p':
-			print_program(); 
+			print_program();
 			break;
 		default:
 			printf("Invalid Command.\n");
@@ -235,7 +235,7 @@ void handle_command() {
 /***************************************************************/
 /* reset registers/memory and reload program                                                    */
 /***************************************************************/
-void reset() {   
+void reset() {
 	int i;
 	/*reset registers*/
 	for (i = 0; i < MIPS_REGS; i++){
@@ -243,15 +243,15 @@ void reset() {
 	}
 	CURRENT_STATE.HI = 0;
 	CURRENT_STATE.LO = 0;
-	
+
 	for (i = 0; i < NUM_MEM_REGION; i++) {
 		uint32_t region_size = MEM_REGIONS[i].end - MEM_REGIONS[i].begin + 1;
 		memset(MEM_REGIONS[i].mem, 0, region_size);
 	}
-	
+
 	/*load program*/
 	load_program();
-	
+
 	/*reset PC*/
 	INSTRUCTION_COUNT = 0;
 	CURRENT_STATE.PC =  MEM_TEXT_BEGIN;
@@ -262,7 +262,7 @@ void reset() {
 /***************************************************************/
 /* Allocate and set memory to zero                                                                            */
 /***************************************************************/
-void init_memory() {                                           
+void init_memory() {
 	int i;
 	for (i = 0; i < NUM_MEM_REGION; i++) {
 		uint32_t region_size = MEM_REGIONS[i].end - MEM_REGIONS[i].begin + 1;
@@ -274,7 +274,7 @@ void init_memory() {
 /**************************************************************/
 /* load program into memory                                                                                      */
 /**************************************************************/
-void load_program() {                   
+void load_program() {
 	FILE * fp;
 	int i, word;
 	uint32_t address;
@@ -301,82 +301,94 @@ void load_program() {
 }
 
 /************************************************************/
-/* decode and execute instruction                                                                     */ 
+/* decode and execute instruction                                                                     */
 /************************************************************/
 void handle_instruction()
 {
 	/*IMPLEMENT THIS*/
 	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
-	
-	uint32_t instr;
-	uint32_t opc;
+
+	uint32_t instr, opc;
 
 	instr = mem_read_32(NEXT_STATE.PC);
 	printf("Read 0x%08x from address 0x%08x (%d)\n", instr, NEXT_STATE.PC, NEXT_STATE.PC);
 	NEXT_STATE.PC+=4;
 
 	opc = instr&0xFC000000;
-	if(opc == 0x0){
+	if(opc == 0x00000000){//SPECIAL INSTRUCTION
 		opc = instr&0x0000003F;
-	}else if(opc == 0x01000000){
+		switch(opc){
+			case 0x00000020: //ADD
+			case 0x00000021: //ADDU
+			case 0x00000022: //SUB
+			case 0x00000023: //SUBU
+			case 0x00000018: //MULT
+			case 0x00000019: //MULTU
+			case 0x0000001A: //DIV
+			case 0x0000001B: //DIVU
+			case 0x00000024: //AND
+			case 0x00000025: //OR
+			case 0x00000026: //XOR
+			case 0x00000027: //NOR
+			case 0x0000002A: //SLT
+			case 0x00000002: //SRL
+			case 0x00000003: //SRA
+			case 0x00000010: //MFHI
+			case 0x00000012: //MFLO
+			case 0x00000011: //MTHI
+			case 0x00000013: //MTLO
+			case 0x00000008: //JR
+			case 0x00000009: //JALR
+			default:
+				printf("0x%08x\n", opc);
+				break;
+		}
+	}else if(opc == 0x01000000){//??? INSTRUCTION
 		opc = instr&0x001F0000;
+		switch(opc){
+			case 0x00010000: //BGEZ
+			default:
+				printf("0x%08x\n", opc);
+				break;
+		}
+	}else{//NORMAL INSTRUCTION
+		switch(opc){
+			case 0x08000000: //ADDI
+			case 0x09000000: //ADDIU
+			case 0x0C000000: //ANDI
+			case 0x0D000000: //ORI
+			case 0x0E000000: //XORI
+			case 0x0A000000: //SLTI
+			case 0x23000000: //LW
+			case 0x20000000: //LB
+			case 0x21000000: //LH
+			case 0x2B000000: //SW
+			case 0x28000000: //SB
+			case 0x29000000: //SH
+			case 0x04000000: //BEQ
+			case 0x05000000: //BNE
+			case 0x06000000: //BLEZ
+			case 0x07000000: //BGTZ
+			case 0x02000000: //J
+			case 0x03000000: //JAL
+			default:
+				printf("0x%08x\n", opc);
+				break;
+		}
 	}
 
 	switch(opc){
-		case 0x00000020: //ADD
-		case 0x00000021: //ADDU
-		case 0x08000000: //ADDI
-		case 0x09000000: //ADDIU
-		case 0x00000022: //SUB
-		case 0x00000023: //SUBU
-		case 0x00000018: //MULT
-		case 0x00000019: //MULTU
-		case 0x0000001A: //DIV
-		case 0x0000001B: //DIVU
-		case 0x00000024: //AND
-		case 0x0C000000: //ANDI
-		case 0x00000025: //OR
-		case 0x0D000000: //ORI
-		case 0x00000026: //XOR
-		case 0x0E000000: //XORI
-		case 0x00000027: //NOR
-		case 0x0000002A: //SLT
-		case 0x0A000000: //SLTI
 		case 0x00000000: //SLL
-		case 0x00000002: //SRL
-		case 0x00000003: //SRA
-		case 0x23000000: //LW
-		case 0x20000000: //LB
-		case 0x21000000: //LH
-		case 0x2B000000: //SW
-		case 0x28000000: //SB
-		case 0x29000000: //SH
-		case 0x00000010: //MFHI
-		case 0x00000012: //MFLO
-		case 0x00000011: //MTHI
-		case 0x00000013: //MTLO
-		case 0x04000000: //BEQ
-		case 0x05000000: //BNE
-		case 0x06000000: //BLEZ
 		case 0x00000000: //BLTZ
-		case 0x00010000: //BGEZ
-		case 0x07000000: //BGTZ
-		case 0x02000000: //J
-		case 0x00000008: //JR
-		case 0x03000000: //JAL
-		case 0x00000009: //JALR
 		case: //SYSCALL
-		default:
-			printf("0x%08x\n", opc);
-			break;
 	}
 }
 
 
 /************************************************************/
-/* Initialize Memory                                                                                                    */ 
+/* Initialize Memory                                                                                                    */
 /************************************************************/
-void initialize() { 
+void initialize() {
 	init_memory();
 	CURRENT_STATE.PC = MEM_TEXT_BEGIN;
 	NEXT_STATE = CURRENT_STATE;
@@ -384,7 +396,7 @@ void initialize() {
 }
 
 /************************************************************/
-/* Print the program loaded into memory (in MIPS assembly format)    */ 
+/* Print the program loaded into memory (in MIPS assembly format)    */
 /************************************************************/
 void print_program(){
 	/*IMPLEMENT THIS*/
@@ -393,11 +405,11 @@ void print_program(){
 /***************************************************************/
 /* main                                                                                                                                   */
 /***************************************************************/
-int main(int argc, char *argv[]) {                              
+int main(int argc, char *argv[]) {
 	printf("\n**************************\n");
 	printf("Welcome to MU-MIPS SIM...\n");
 	printf("**************************\n\n");
-	
+
 	if (argc < 2) {
 		printf("Error: You should provide input file.\nUsage: %s <input program> \n\n",  argv[0]);
 		exit(1);
