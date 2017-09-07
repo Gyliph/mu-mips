@@ -311,10 +311,9 @@ void handle_instruction()
 	uint32_t instr, opc;
 	uint32_t rs, rt, immediate;
 
-
-	instr = mem_read_32(NEXT_STATE.PC);
-	printf("Read 0x%08x from address 0x%08x (%d)\n", instr, NEXT_STATE.PC, NEXT_STATE.PC);
 	NEXT_STATE.PC+=4;
+	instr = mem_read_32(CURRENT_STATE.PC);
+	printf("Read 0x%08x from address 0x%08x (%d)\n", instr, CURRENT_STATE.PC, CURRENT_STATE.PC);
 
 	if(instr == 0x0000000C){
 		RUN_FLAG = FALSE;
@@ -322,6 +321,7 @@ void handle_instruction()
 	}//SIMULATION FINISHED
 
 	opc = instr&0xFC000000;
+	printf("0x%08x\n", opc);
 	if(opc == 0x00000000){//SPECIAL INSTRUCTION
 		opc = instr&0x0000003F;
 		switch(opc){
@@ -368,7 +368,8 @@ void handle_instruction()
 				rt = (instr&0x001F0000) >> 16;
 				immediate = instr&0x0000FFFF;
 
-				NEXT_STATE.REGS[rt] = NEXT_STATE.REGS[rs] + immediate;
+				CURRENT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
+				printf("ADDI\n");
 				break;
 			case 0x24000000: //ADDIU
 			case 0x30000000: //ANDI
