@@ -379,6 +379,7 @@ void handle_instruction()
 			case 0x07000000: //BGTZ
 			case 0x02000000: //J
 			case 0x03000000: //JAL
+			case 0x0F000000: //LUI
 			default:
 				printf("NORMAL\n", opc);
 				break;
