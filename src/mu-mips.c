@@ -309,7 +309,7 @@ void handle_instruction()
 	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
 
 	uint32_t instr, opc;
-	uint32_t rs, rt, immediate;
+	uint32_t rs, rt, immediate, result;
 
 	NEXT_STATE.PC+=4;
 	instr = mem_read_32(CURRENT_STATE.PC);
@@ -368,10 +368,21 @@ void handle_instruction()
 				rt = (instr&0x001F0000) >> 16;
 				immediate = instr&0x0000FFFF;
 
-				NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
+				result = CURRENT_STATE.REGS[rs] + immediate;
+
+				NEXT_STATE.REGS[rt] = result;
 				printf("ADDI\n");
 				break;
 			case 0x24000000: //ADDIU
+				rs = (instr&0x03E00000) >> 21;
+				rt = (instr&0x001F0000) >> 16;
+				immediate = instr&0x0000FFFF;
+
+				result = CURRENT_STATE.REGS[rs] + immediate;
+
+				NEXT_STATE.REGS[rt] = result;
+				printf("ADDIU\n");
+				break;
 			case 0x30000000: //ANDI
 			case 0x34000000: //ORI
 			case 0x38000000: //XORI
