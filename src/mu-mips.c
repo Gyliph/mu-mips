@@ -350,7 +350,7 @@ void handle_instruction()
 				printf("SPECIAL\n", opc);
 				break;
 		}
-	}else if(opc == 0x01000000){//REGIMM INSTRUCTION
+	}else if(opc == 0x04000000){//REGIMM INSTRUCTION
 		opc = instr&0x001F0000;
 		switch(opc){
 			case 0x00010000: //BGEZ
@@ -362,6 +362,13 @@ void handle_instruction()
 	}else{//NORMAL INSTRUCTION
 		switch(opc){
 			case 0x08000000: //ADDI
+				uint32_t rs, rt, immediate;
+				rs = instr&0x03E00000;
+				rt = instr&0x001F0000;
+				immediate = instr&0x0000FFFF;
+
+
+				break;
 			case 0x09000000: //ADDIU
 			case 0x0C000000: //ANDI
 			case 0x0D000000: //ORI
