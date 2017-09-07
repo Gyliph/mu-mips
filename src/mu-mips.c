@@ -309,6 +309,8 @@ void handle_instruction()
 	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
 
 	uint32_t instr, opc;
+	uint32_t rs, rt, immediate;
+
 
 	instr = mem_read_32(NEXT_STATE.PC);
 	printf("Read 0x%08x from address 0x%08x (%d)\n", instr, NEXT_STATE.PC, NEXT_STATE.PC);
@@ -347,7 +349,7 @@ void handle_instruction()
 			case 0x00000000: //SLL
 			case 0x0000000C: //SYSCALL
 			default:
-				printf("SPECIAL\n", opc);
+				printf("SPECIAL\n");
 				break;
 		}
 	}else if(opc == 0x04000000){//REGIMM INSTRUCTION
@@ -356,39 +358,38 @@ void handle_instruction()
 			case 0x00010000: //BGEZ
 			case 0x00000000: //BLTZ
 			default:
-				printf("REGIMM\n", opc);
+				printf("REGIMM\n");
 				break;
 		}
 	}else{//NORMAL INSTRUCTION
 		switch(opc){
-			case 0x08000000: //ADDI
-				uint32_t rs, rt, immediate;
-				rs = instr&0x03E00000;
-				rt = instr&0x001F0000;
+			case 0x20000000: //ADDI
+				rs = (instr&0x03E00000) >> 21;
+				rt = (instr&0x001F0000) >> 16;
 				immediate = instr&0x0000FFFF;
 
-
+				NEXT_STATE.REGS[rt] = NEXT_STATE.REGS[rs] + immediate;
 				break;
-			case 0x09000000: //ADDIU
-			case 0x0C000000: //ANDI
-			case 0x0D000000: //ORI
-			case 0x0E000000: //XORI
-			case 0x0A000000: //SLTI
-			case 0x23000000: //LW
-			case 0x20000000: //LB
-			case 0x21000000: //LH
-			case 0x2B000000: //SW
-			case 0x28000000: //SB
-			case 0x29000000: //SH
-			case 0x04000000: //BEQ
-			case 0x05000000: //BNE
-			case 0x06000000: //BLEZ
-			case 0x07000000: //BGTZ
-			case 0x02000000: //J
-			case 0x03000000: //JAL
-			case 0x0F000000: //LUI
+			case 0x24000000: //ADDIU
+			case 0x30000000: //ANDI
+			case 0x34000000: //ORI
+			case 0x38000000: //XORI
+			case 0x28000000: //SLTI
+			case 0x8C000000: //LW
+			case 0x80000000: //LB
+			case 0x84000000: //LH
+			case 0xAC000000: //SW
+			case 0xA0000000: //SB
+			case 0xA4000000: //SH
+			case 0x10000000: //BEQ
+			case 0x14000000: //BNE
+			case 0x18000000: //BLEZ
+			case 0x1C000000: //BGTZ
+			case 0x08000000: //J
+			case 0x0C000000: //JAL
+			case 0x3C000000: //LUI
 			default:
-				printf("NORMAL\n", opc);
+				printf("NORMAL\n");
 				break;
 		}
 	}
