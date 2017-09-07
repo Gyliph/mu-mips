@@ -368,7 +368,7 @@ void handle_instruction()
 				rt = (instr&0x001F0000) >> 16;
 				immediate = instr&0x0000FFFF;
 
-				CURRENT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
+				NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
 				printf("ADDI\n");
 				break;
 			case 0x24000000: //ADDIU
