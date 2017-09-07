@@ -314,7 +314,10 @@ void handle_instruction()
 	printf("Read 0x%08x from address 0x%08x (%d)\n", instr, NEXT_STATE.PC, NEXT_STATE.PC);
 	NEXT_STATE.PC+=4;
 
-	if(instr == 0x0000000C){RUN_FLAG = FALSE;}//SIMULATION FINISHED
+	if(instr == 0x0000000C){
+		RUN_FLAG = FALSE;
+		return;
+	}//SIMULATION FINISHED
 
 	opc = instr&0xFC000000;
 	if(opc == 0x00000000){//SPECIAL INSTRUCTION
@@ -344,16 +347,16 @@ void handle_instruction()
 			case 0x00000000: //SLL
 			case 0x0000000C: //SYSCALL
 			default:
-				printf("0x%08x\n", opc);
+				printf("SPECIAL\n", opc);
 				break;
 		}
-	}else if(opc == 0x01000000){//??? INSTRUCTION
+	}else if(opc == 0x01000000){//REGIMM INSTRUCTION
 		opc = instr&0x001F0000;
 		switch(opc){
 			case 0x00010000: //BGEZ
 			case 0x00000000: //BLTZ
 			default:
-				printf("0x%08x\n", opc);
+				printf("REGIMM\n", opc);
 				break;
 		}
 	}else{//NORMAL INSTRUCTION
@@ -377,7 +380,7 @@ void handle_instruction()
 			case 0x02000000: //J
 			case 0x03000000: //JAL
 			default:
-				printf("0x%08x\n", opc);
+				printf("NORMAL\n", opc);
 				break;
 		}
 	}
