@@ -305,11 +305,9 @@ void load_program() {
 /************************************************************/
 void handle_instruction()
 {
-	/*IMPLEMENT THIS*/
-	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
-
 	uint32_t instr, opc;
-	uint32_t rs, rt, immediate, result;
+	uint32_t rs, rt, immediate, result, sign;
+	uint8_t overflow;
 
 	NEXT_STATE.PC+=4;
 	instr = mem_read_32(CURRENT_STATE.PC);
@@ -362,31 +360,36 @@ void handle_instruction()
 				break;
 		}
 	}else{//NORMAL INSTRUCTION
+		rs = (instr&0x03E00000) >> 21;
+		rt = (instr&0x001F0000) >> 16;
+	 	immediate = instr&0x0000FFFF;
+		sign = 0x00008000;
+		overflow = 0;
 		switch(opc){
 			case 0x20000000: //ADDI
-				rs = (instr&0x03E00000) >> 21;
-				rt = (instr&0x001F0000) >> 16;
-				immediate = instr&0x0000FFFF;
-
+				if(immediate&sign){immediate += 0xFFFF0000;}
 				result = CURRENT_STATE.REGS[rs] + immediate;
-
-				NEXT_STATE.REGS[rt] = result;
-				printf("ADDI\n");
+				if(result < immediate){overflow = 1);}
 				break;
 			case 0x24000000: //ADDIU
-				rs = (instr&0x03E00000) >> 21;
-				rt = (instr&0x001F0000) >> 16;
-				immediate = instr&0x0000FFFF;
-
+				if(immediate&sign){immediate += 0xFFFF0000;}
 				result = CURRENT_STATE.REGS[rs] + immediate;
-
-				NEXT_STATE.REGS[rt] = result;
-				printf("ADDIU\n");
 				break;
 			case 0x30000000: //ANDI
+				result = CURRENT_STATE.REGS[rs] & immediate;
+				break;
 			case 0x34000000: //ORI
+				result = CURRENT_STATE.REGS[rs] | immediate;
+				break;
 			case 0x38000000: //XORI
+				result = CURRENT_STATE.REGS[rs] ^ immediate;
+				break;
 			case 0x28000000: //SLTI
+				if(immediate&sign){immediate += 0xFFFF0000;}
+				if(CURENT_STATE.REGS[rs] < immediate){
+					result = 0x00000001;
+				}
+				break;
 			case 0x8C000000: //LW
 			case 0x80000000: //LB
 			case 0x84000000: //LH
@@ -404,6 +407,7 @@ void handle_instruction()
 				printf("NORMAL\n");
 				break;
 		}
+		if(overflow < 1){NEXT_STATE.REGS[rt] = result;}
 	}
 }
 
