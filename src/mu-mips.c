@@ -306,108 +306,238 @@ void load_program() {
 void handle_instruction()
 {
 	uint32_t instr, opc;
-	uint32_t rs, rt, immediate, result, sign;
-	uint8_t overflow;
+	uint32_t rs, rt, rd, sa, immediate, result,
+	uint32_t sign15, sign31, target, vAddr;
+	uint64_t result64;
 
 	NEXT_STATE.PC+=4;
 	instr = mem_read_32(CURRENT_STATE.PC);
-	printf("Read 0x%08x from address 0x%08x (%d)\n", instr, CURRENT_STATE.PC, CURRENT_STATE.PC);
 
 	if(instr == 0x0000000C){
 		RUN_FLAG = FALSE;
 		return;
 	}//SIMULATION FINISHED
 
+	rs = (instr&0x03E00000) >> 21;
+	rt = (instr&0x001F0000) >> 16;
+	rd = (instr&0x0000F800) >> 11;
+	sa = (instr&0x000001C0) >> 6;
+	immediate = instr&0x0000FFFF;
+	target = instr&0x03FFFFFF;
+	sign15 = 0x00008000;
+	sign31 = 0x80000000;
 	opc = instr&0xFC000000;
-	printf("0x%08x\n", opc);
 	if(opc == 0x00000000){//SPECIAL INSTRUCTION
 		opc = instr&0x0000003F;
 		switch(opc){
 			case 0x00000020: //ADD
+				result = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+				if(result >= immediate){NEXT_STATE.REGS[rd] = result;}
+				break;
 			case 0x00000021: //ADDU
+				result = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x00000022: //SUB
+				result = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
+				if(result <= immediate){NEXT_STATE.REGS[rd] = result;}
+				break;
 			case 0x00000023: //SUBU
-			case 0x00000018: //MULT
-			case 0x00000019: //MULTU
-			case 0x0000001A: //DIV
-			case 0x0000001B: //DIVU
+				result = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
+				NEXT_STATE.REGS[rd] = result;
+				break;
+			case 0x00000018: //MULT TODO
+				result64 = CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt];
+				NEXT_STATE.LO = (uint32_t)(result64&0x00000000FFFFFFFF);
+				NEXT_STATE.HI = (uint32_t)((result64&0xFFFFFFFF00000000)>>32);
+				break;
+			case 0x00000019: //MULTU TODO
+				result64 = CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt];
+				NEXT_STATE.LO = (uint32_t)(result64&0x00000000FFFFFFFF);
+				NEXT_STATE.HI = (uint32_t)((result64&0xFFFFFFFF00000000)>>32);
+				break;
+			case 0x0000001A: //DIV TODO
+				NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
+				NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+				break;
+			case 0x0000001B: //DIVU TODO
+				NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
+				NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+				break;
 			case 0x00000024: //AND
+				result = CURRENT_STATE.REGS[rs] & CURRENT_STATE.REGS[rt];
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x00000025: //OR
+				result = CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt];
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x00000026: //XOR
+				result = CURRENT_STATE.REGS[rs] ^ CURRENT_STATE.REGS[rt];
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x00000027: //NOR
+				result = ~(CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt]);
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x0000002A: //SLT
+				if(CURRENT_STATE.REGS[rs] < CURRENT_STATE.REGS[rt]){
+					result = 0x1;
+				}else{
+					result = 0x0;
+				}
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x00000002: //SRL
+				result = CURRENT_STATE.REGS[rt]>>sa;
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x00000003: //SRA
+				result = ((int32_t)CURRENT_STATE.REGS[rt])>>sa;
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x00000010: //MFHI
+				result = CURRENT_STATE.HI;
+				NEXT_STATE.REGS[rd] = result;
+				break;
 			case 0x00000012: //MFLO
-			case 0x00000011: //MTHI
-			case 0x00000013: //MTLO
+				result = CURRENT_STATE.LO;
+				NEXT_STATE.REGS[rd] = result;
+				break;
+			case 0x00000011: //MTHI TODO
+				result = CURRENT_STATE.REGS[rs];
+				NEXT_STATE.HI = result;
+				break;
+			case 0x00000013: //MTLO TODO
+				result = CURRENT_STATE.REGS[rs];
+				NEXT_STATE.LO = result;
+				break;
 			case 0x00000008: //JR
+				NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
+				break;
 			case 0x00000009: //JALR
+				CURRENT_STATE.REGS[rd] = CURRENT_STATE.PC+8;
+				NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
+				break;
 			case 0x00000000: //SLL
-			case 0x0000000C: //SYSCALL
+				result = CURRENT_STATE.REGS[rt]<<sa;
+				NEXT_STATE.REGS[rd] = result;
+				return;
+			case 0x0000000C: //SYSCALL'
+				return;
 			default:
-				printf("SPECIAL\n");
+				printf("SPECIAL ERROR\n");
 				break;
 		}
 	}else if(opc == 0x04000000){//REGIMM INSTRUCTION
 		opc = instr&0x001F0000;
 		switch(opc){
 			case 0x00010000: //BGEZ
+				immediate = immediate << 2;
+				if((immediate>>2)&sign15){immediate += 0xFFFC0000;}
+				if(CURRENT_STATE.REGS[rs]&sign31 == 0x0){
+					NEXT_STATE.PC = CURRENT_STATE.PC + immediate;
+				}
+				break;
 			case 0x00000000: //BLTZ
+				immediate = immediate << 2;
+				if((immediate>>2)&sign15){immediate += 0xFFFC0000;}
+				if(CURRENT_STATE.REGS[rs]&sign31){
+					NEXT_STATE.PC = CURRENT_STATE.PC + immediate;
+				}
+				break;
 			default:
-				printf("REGIMM\n");
+				printf("REGIMM ERROR\n");
 				break;
 		}
 	}else{//NORMAL INSTRUCTION
-		rs = (instr&0x03E00000) >> 21;
-		rt = (instr&0x001F0000) >> 16;
-	 	immediate = instr&0x0000FFFF;
-		sign = 0x00008000;
-		overflow = 0;
 		switch(opc){
 			case 0x20000000: //ADDI
-				if(immediate&sign){immediate += 0xFFFF0000;}
+				if(immediate&sign15){immediate += 0xFFFF0000;}
 				result = CURRENT_STATE.REGS[rs] + immediate;
-				if(result < immediate){overflow = 1);}
+				if(result >= immediate){NEXT_STATE.REGS[rt] = result;}
 				break;
 			case 0x24000000: //ADDIU
-				if(immediate&sign){immediate += 0xFFFF0000;}
+				if(immediate&sign15){immediate += 0xFFFF0000;}
 				result = CURRENT_STATE.REGS[rs] + immediate;
+				NEXT_STATE.REGS[rt] = result;
 				break;
 			case 0x30000000: //ANDI
 				result = CURRENT_STATE.REGS[rs] & immediate;
+				NEXT_STATE.REGS[rt] = result;
 				break;
 			case 0x34000000: //ORI
 				result = CURRENT_STATE.REGS[rs] | immediate;
+				NEXT_STATE.REGS[rt] = result;
 				break;
 			case 0x38000000: //XORI
 				result = CURRENT_STATE.REGS[rs] ^ immediate;
+				NEXT_STATE.REGS[rt] = result;
 				break;
 			case 0x28000000: //SLTI
-				if(immediate&sign){immediate += 0xFFFF0000;}
+				if(immediate&sign15){immediate += 0xFFFF0000;}
 				if(CURENT_STATE.REGS[rs] < immediate){
 					result = 0x00000001;
+				}else{result = 0x00000000;}
+				NEXT_STATE.REGS[rt] = result;
+				break;
+			case 0x8C000000: //LW TODO
+				if(immediate&sign15){immediate += 0xFFFF0000;}
+				vAddr = immediate + CURRENT_STATE.REGS[rs];
+
+				break;
+			case 0x80000000: //LB TODO
+				break;
+			case 0x84000000: //LH TODO
+				break;
+			case 0xAC000000: //SW TODO
+				break;
+			case 0xA0000000: //SB TODO
+				break;
+			case 0xA4000000: //SH TODO
+				break;
+			case 0x10000000: //BEQ
+				immediate = immediate << 2;
+				if((immediate>>2)&sign15){immediate += 0xFFFC0000;}
+				if(CURRENT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]){
+					NEXT_STATE.PC = CURRENT_STATE.PC + immediate;
 				}
 				break;
-			case 0x8C000000: //LW
-			case 0x80000000: //LB
-			case 0x84000000: //LH
-			case 0xAC000000: //SW
-			case 0xA0000000: //SB
-			case 0xA4000000: //SH
-			case 0x10000000: //BEQ
 			case 0x14000000: //BNE
+				immediate = immediate << 2;
+				if((immediate>>2)&sign15){immediate += 0xFFFC0000;}
+				if(CURRENT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt]){
+					NEXT_STATE.PC = CURRENT_STATE.PC + immediate;
+				}
+				break;
 			case 0x18000000: //BLEZ
+				immediate = immediate << 2;
+				if((immediate>>2)&sign15){immediate += 0xFFFC0000;}
+				if(CURRENT_STATE.REGS[rs]&sign31 || CURRENT_STATE.REGS[rs]==0x0){
+ 			 		NEXT_STATE.PC = CURRENT_STATE.PC + immediate;
+ 	 		 	}
+				break;
 			case 0x1C000000: //BGTZ
+				immediate = immediate << 2;
+				if((immediate>>2)&sign15){immediate += 0xFFFC0000;}
+				if(CURRENT_STATE.REGS[rs]&sign31 && CURRENT_STATE.REGS[rs]==0x0){
+					NEXT_STATE.PC = CURRENT_STATE.PC + immediate;
+				}
+				break;
 			case 0x08000000: //J
+				NEXT_STATE.PC = (CURRENT_STATE.PC&0xF0000000) + (target<<2);
+				break;
 			case 0x0C000000: //JAL
+				CURRENT_STATE.REGS[31] = CURRENT_STATE.PC+8;
+				NEXT_STATE.PC = (CURRENT_STATE.PC&0xF0000000) + (target<<2);
+				break;
 			case 0x3C000000: //LUI
+				NEXT_STATE.REGS[rt] = immediate<<16;
+				break;
 			default:
-				printf("NORMAL\n");
+				printf("NORMAL ERROR\n");
 				break;
 		}
-		if(overflow < 1){NEXT_STATE.REGS[rt] = result;}
 	}
 }
 
