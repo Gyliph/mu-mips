@@ -306,7 +306,7 @@ void load_program() {
 void handle_instruction()
 {
 	uint32_t instr, opc;
-	uint32_t rs, rt, rd, sa, immediate, result,
+	uint32_t rs, rt, rd, sa, immediate, result;
 	uint32_t sign15, sign31, target, vAddr;
 	uint64_t result64;
 
@@ -435,7 +435,7 @@ void handle_instruction()
 			case 0x00010000: //BGEZ
 				immediate = immediate << 2;
 				if((immediate>>2)&sign15){immediate += 0xFFFC0000;}
-				if(CURRENT_STATE.REGS[rs]&sign31 == 0x0){
+				if((CURRENT_STATE.REGS[rs]&sign31) == 0x0){
 					NEXT_STATE.PC = CURRENT_STATE.PC + immediate;
 				}
 				break;
@@ -476,7 +476,7 @@ void handle_instruction()
 				break;
 			case 0x28000000: //SLTI
 				if(immediate&sign15){immediate += 0xFFFF0000;}
-				if(CURENT_STATE.REGS[rs] < immediate){
+				if(CURRENT_STATE.REGS[rs] < immediate){
 					result = 0x00000001;
 				}else{result = 0x00000000;}
 				NEXT_STATE.REGS[rt] = result;
@@ -654,10 +654,10 @@ void print_program(){
 		opc = instr&0x001F0000;
 		switch(opc){
 			case 0x00010000: //BGEZ
-				printf("BGEZ 0x%08x, 0x%16x\n", rs, immediate);
+				printf("BGEZ 0x%08x, 0x%08x\n", rs, immediate);
 				break;
 			case 0x00000000: //BLTZ
-				printf("BLTZ 0x%08x, 0x%16x\n", rs, immediate);
+				printf("BLTZ 0x%08x, 0x%08x\n", rs, immediate);
 				break;
 			default:
 				printf("REGIMM ERROR\n");
@@ -666,22 +666,22 @@ void print_program(){
 	}else{//NORMAL INSTRUCTION
 		switch(opc){
 			case 0x20000000: //ADDI
-				printf("ADDI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				printf("ADDI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
 				break;
 			case 0x24000000: //ADDIU
-				printf("ADDIU 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				printf("ADDIU 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
 				break;
 			case 0x30000000: //ANDI
-				printf("ANDI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				printf("ANDI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
 				break;
 			case 0x34000000: //ORI
-				printf("ORI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				printf("ORI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
 				break;
 			case 0x38000000: //XORI
-				printf("XORI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				printf("XORI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
 				break;
 			case 0x28000000: //SLTI
-				printf("SLTI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				printf("SLTI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
 				break;
 			case 0x8C000000: //LW TODO
 				break;
@@ -696,25 +696,25 @@ void print_program(){
 			case 0xA4000000: //SH TODO
 				break;
 			case 0x10000000: //BEQ
-				printf("BEQ 0x%08x, 0x%08x, 0x%16x\n", rs, rt, immediate);
+				printf("BEQ 0x%08x, 0x%08x, 0x%08x\n", rs, rt, immediate);
 				break;
 			case 0x14000000: //BNE
-				printf("BNE 0x%08x, 0x%08x, 0x%16x\n", rs, rt, immediate);
+				printf("BNE 0x%08x, 0x%08x, 0x%08x\n", rs, rt, immediate);
 				break;
 			case 0x18000000: //BLEZ
-				printf("BLEZ 0x%08x, 0x%16x\n", rs, immediate);
+				printf("BLEZ 0x%08x, 0x%08x\n", rs, immediate);
 				break;
 			case 0x1C000000: //BGTZ
-				printf("BGTZ 0x%08x, 0x%16x\n", rs, immediate);
+				printf("BGTZ 0x%08x, 0x%08x\n", rs, immediate);
 				break;
 			case 0x08000000: //J
-				printf("J 0x%26x\n", target);
+				printf("J 0x%08x\n", target);
 				break;
 			case 0x0C000000: //JAL
-				printf("JAL 0x%26x\n", target);
+				printf("JAL 0x%08x\n", target);
 				break;
 			case 0x3C000000: //LUI
-				printf("LUI 0x%08x, 0x%16x\n", rt, immediate);
+				printf("LUI 0x%08x, 0x%08x\n", rt, immediate);
 				break;
 			default:
 				printf("NORMAL ERROR\n");
