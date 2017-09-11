@@ -416,7 +416,7 @@ void handle_instruction()
 				NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
 				break;
 			case 0x00000009: //JALR
-				CURRENT_STATE.REGS[rd] = CURRENT_STATE.PC+8;
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.PC+8;
 				NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
 				break;
 			case 0x00000000: //SLL
@@ -483,8 +483,10 @@ void handle_instruction()
 				break;
 			case 0x8C000000: //LW TODO
 				if(immediate&sign15){immediate += 0xFFFF0000;}
-				vAddr = immediate + CURRENT_STATE.REGS[rs];
-
+				vAddr = immediate+CURRENT_STATE.REGS[rs];
+				if(vAddr & 0x00000003){break;}
+				result = CURRENT_STATE.REGS[rs+immediate];
+				if(result&sign15){result += 0xFFFF0000;}
 				break;
 			case 0x80000000: //LB TODO
 				break;
@@ -528,7 +530,7 @@ void handle_instruction()
 				NEXT_STATE.PC = (CURRENT_STATE.PC&0xF0000000) + (target<<2);
 				break;
 			case 0x0C000000: //JAL
-				CURRENT_STATE.REGS[31] = CURRENT_STATE.PC+8;
+				NEXT_STATE.REGS[31] = CURRENT_STATE.PC+8;
 				NEXT_STATE.PC = (CURRENT_STATE.PC&0xF0000000) + (target<<2);
 				break;
 			case 0x3C000000: //LUI
@@ -556,7 +558,169 @@ void initialize() {
 /* Print the program loaded into memory (in MIPS assembly format)    */
 /************************************************************/
 void print_program(){
-	/*IMPLEMENT THIS*/
+	uint32_t instr, opc;
+	uint32_t rs, rt, rd, sa, immediate, target;
+
+	instr = mem_read_32(CURRENT_STATE.PC);
+
+	if(instr == 0x0000000C){
+		//SOMETHING HERE
+	}//SIMULATION FINISHED
+
+	rs = (instr&0x03E00000) >> 21;
+	rt = (instr&0x001F0000) >> 16;
+	rd = (instr&0x0000F800) >> 11;
+	sa = (instr&0x000001C0) >> 6;
+	immediate = instr&0x0000FFFF;
+	target = instr&0x03FFFFFF;
+	opc = instr&0xFC000000;
+	if(opc == 0x00000000){//SPECIAL INSTRUCTION
+		opc = instr&0x0000003F;
+		switch(opc){
+			case 0x00000020: //ADD
+				printf("ADD 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000021: //ADDU
+				printf("ADDU 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000022: //SUB
+				printf("SUB 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000023: //SUBU
+				printf("SUBU 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000018: //MULT
+				printf("MULT 0x%08x, 0x%08x\n", rs, rt);
+				break;
+			case 0x00000019: //MULTU
+				printf("MULTU 0x%08x, 0x%08x\n", rs, rt);
+				break;
+			case 0x0000001A: //DIV
+				printf("DIV 0x%08x, 0x%08x\n", rs, rt);
+				break;
+			case 0x0000001B: //DIVU
+				printf("DIVU 0x%08x, 0x%08x\n", rs, rt);
+				break;
+			case 0x00000024: //AND
+				printf("AND 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000025: //OR
+				printf("OR 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000026: //XOR
+				printf("XOR 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000027: //NOR
+				printf("NOR 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x0000002A: //SLT
+				printf("SLT 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000002: //SRL
+				printf("SLT 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				break;
+			case 0x00000003: //SRA
+				printf("SRA 0x%08x, 0x%08x, 0x%08x\n", rd, rt, sa);
+				break;
+			case 0x00000010: //MFHI
+				printf("MFHI 0x%08x\n", rd);
+				break;
+			case 0x00000012: //MFLO
+				printf("MFLO 0x%08x\n", rd);
+				break;
+			case 0x00000011: //MTHI TODO
+				printf("MTHI 0x%08x\n", rs);
+				break;
+			case 0x00000013: //MTLO TODO
+				printf("MTLO 0x%08x\n", rs);
+				break;
+			case 0x00000008: //JR
+				printf("JR 0x%08x\n", rs);
+				break;
+			case 0x00000009: //JALR
+				printf("JALR 0x%08x, 0x%08x\n", rd, rs);
+				break;
+			case 0x00000000: //SLL
+				printf("SLL 0x%08x, 0x%08x, 0x%08x\n", rd, rt, sa);
+				break;
+			case 0x0000000C: //SYSCALL
+				printf("SYSCALL\n");
+				break;
+			default:
+				printf("SPECIAL ERROR\n");
+				break;
+		}
+	}else if(opc == 0x04000000){//REGIMM INSTRUCTION
+		opc = instr&0x001F0000;
+		switch(opc){
+			case 0x00010000: //BGEZ
+				printf("BGEZ 0x%08x, 0x%16x\n", rs, immediate);
+				break;
+			case 0x00000000: //BLTZ
+				printf("BLTZ 0x%08x, 0x%16x\n", rs, immediate);
+				break;
+			default:
+				printf("REGIMM ERROR\n");
+				break;
+		}
+	}else{//NORMAL INSTRUCTION
+		switch(opc){
+			case 0x20000000: //ADDI
+				printf("ADDI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				break;
+			case 0x24000000: //ADDIU
+				printf("ADDIU 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				break;
+			case 0x30000000: //ANDI
+				printf("ANDI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				break;
+			case 0x34000000: //ORI
+				printf("ORI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				break;
+			case 0x38000000: //XORI
+				printf("XORI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				break;
+			case 0x28000000: //SLTI
+				printf("SLTI 0x%08x, 0x%08x, 0x%16x\n", rt, rs, immediate);
+				break;
+			case 0x8C000000: //LW TODO
+				break;
+			case 0x80000000: //LB TODO
+				break;
+			case 0x84000000: //LH TODO
+				break;
+			case 0xAC000000: //SW TODO
+				break;
+			case 0xA0000000: //SB TODO
+				break;
+			case 0xA4000000: //SH TODO
+				break;
+			case 0x10000000: //BEQ
+				printf("BEQ 0x%08x, 0x%08x, 0x%16x\n", rs, rt, immediate);
+				break;
+			case 0x14000000: //BNE
+				printf("BNE 0x%08x, 0x%08x, 0x%16x\n", rs, rt, immediate);
+				break;
+			case 0x18000000: //BLEZ
+				printf("BLEZ 0x%08x, 0x%16x\n", rs, immediate);
+				break;
+			case 0x1C000000: //BGTZ
+				printf("BGTZ 0x%08x, 0x%16x\n", rs, immediate);
+				break;
+			case 0x08000000: //J
+				printf("J 0x%26x\n", target);
+				break;
+			case 0x0C000000: //JAL
+				printf("JAL 0x%26x\n", target);
+				break;
+			case 0x3C000000: //LUI
+				printf("LUI 0x%08x, 0x%16x\n", rt, immediate);
+				break;
+			default:
+				printf("NORMAL ERROR\n");
+				break;
+		}
+	}
 }
 
 /***************************************************************/
