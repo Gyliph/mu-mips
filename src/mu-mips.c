@@ -307,25 +307,23 @@ void handle_instruction()
 {
 	uint32_t instr, opc;
 	uint32_t rs, rt, rd, sa, immediate, result;
-	uint32_t sign15, sign31, target, vAddr;
+	uint32_t sign7,sign15, sign31, target, vAddr;
 	uint64_t result64;
+
+	if(HI_CTR > 0x0){HI_CTR--;}
+	if(LO_CTR > 0x0){LO_CTR--;}
 
 	NEXT_STATE.PC+=4;
 	instr = mem_read_32(CURRENT_STATE.PC);
-
-	if(instr == 0x0000000C){
-		RUN_FLAG = FALSE;
-		return;
-	}//SIMULATION FINISHED
-
 	rs = (instr&0x03E00000) >> 21;
 	rt = (instr&0x001F0000) >> 16;
 	rd = (instr&0x0000F800) >> 11;
 	sa = (instr&0x000001C0) >> 6;
 	immediate = instr&0x0000FFFF;
 	target = instr&0x03FFFFFF;
-	sign15 = 0x00008000;
-	sign31 = 0x80000000;
+	sign7 = 0x00000080; // 0000 0000 0000 0000 0000 0000 0000 1000 0000
+	sign15 = 0x00008000; // 0000 0000 0000 0000 0000 1000 0000 0000 0000
+	sign31 = 0x80000000;// 1000 0000 0000 0000 0000 0000 0000 0000 0000
 	opc = instr&0xFC000000;
 	if(opc == 0x00000000){//SPECIAL INSTRUCTION
 		opc = instr&0x0000003F;
@@ -346,23 +344,31 @@ void handle_instruction()
 				result = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
 				NEXT_STATE.REGS[rd] = result;
 				break;
-			case 0x00000018: //MULT TODO
-				result64 = CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt];
-				NEXT_STATE.LO = (uint32_t)(result64&0x00000000FFFFFFFF);
-				NEXT_STATE.HI = (uint32_t)((result64&0xFFFFFFFF00000000)>>32);
+			case 0x00000018: //MULT
+				if(HI_CTR == 0x0 && LO_CTR == 0x0){
+					result64 = CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt];
+					NEXT_STATE.LO = (uint32_t)(result64&0x00000000FFFFFFFF);
+					NEXT_STATE.HI = (uint32_t)((result64&0xFFFFFFFF00000000)>>32);
+				}
 				break;
-			case 0x00000019: //MULTU TODO
-				result64 = CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt];
-				NEXT_STATE.LO = (uint32_t)(result64&0x00000000FFFFFFFF);
-				NEXT_STATE.HI = (uint32_t)((result64&0xFFFFFFFF00000000)>>32);
+			case 0x00000019: //MULTU
+				if(HI_CTR == 0x0 && LO_CTR == 0x0){
+					result64 = CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt];
+					NEXT_STATE.LO = (uint32_t)(result64&0x00000000FFFFFFFF);
+					NEXT_STATE.HI = (uint32_t)((result64&0xFFFFFFFF00000000)>>32);
+				}
 				break;
-			case 0x0000001A: //DIV TODO
-				NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
-				NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+			case 0x0000001A: //DIV
+				if(HI_CTR == 0x0 && LO_CTR == 0x0){
+					NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
+					NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+				}
 				break;
-			case 0x0000001B: //DIVU TODO
-				NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
-				NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+			case 0x0000001B: //DIVU
+				if(HI_CTR == 0x0 && LO_CTR == 0x0){
+					NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
+					NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+				}
 				break;
 			case 0x00000024: //AND
 				result = CURRENT_STATE.REGS[rs] & CURRENT_STATE.REGS[rt];
@@ -399,18 +405,24 @@ void handle_instruction()
 			case 0x00000010: //MFHI
 				result = CURRENT_STATE.HI;
 				NEXT_STATE.REGS[rd] = result;
+				HI_CTR = 0x2;
 				break;
 			case 0x00000012: //MFLO
 				result = CURRENT_STATE.LO;
 				NEXT_STATE.REGS[rd] = result;
+				LO_CTR = 0x2;
 				break;
-			case 0x00000011: //MTHI TODO
-				result = CURRENT_STATE.REGS[rs];
-				NEXT_STATE.HI = result;
+			case 0x00000011: //MTHI
+				if(HI_CTR == 0x0){
+					result = CURRENT_STATE.REGS[rs];
+					NEXT_STATE.HI = result;
+				}
 				break;
-			case 0x00000013: //MTLO TODO
-				result = CURRENT_STATE.REGS[rs];
-				NEXT_STATE.LO = result;
+			case 0x00000013: //MTLO
+				if(LO_CTR == 0x0){
+					result = CURRENT_STATE.REGS[rs];
+					NEXT_STATE.LO = result;
+				}
 				break;
 			case 0x00000008: //JR
 				NEXT_STATE.PC = CURRENT_STATE.REGS[rs];
@@ -422,9 +434,11 @@ void handle_instruction()
 			case 0x00000000: //SLL
 				result = CURRENT_STATE.REGS[rt]<<sa;
 				NEXT_STATE.REGS[rd] = result;
-				return;
-			case 0x0000000C: //SYSCALL'
-				return;
+				break;
+			case 0x0000000C: //SYSCALL
+				NEXT_STATE.REGS[2] = 0xA;
+				RUN_FLAG = FALSE;
+				break;
 			default:
 				printf("SPECIAL ERROR\n");
 				break;
@@ -481,22 +495,46 @@ void handle_instruction()
 				}else{result = 0x00000000;}
 				NEXT_STATE.REGS[rt] = result;
 				break;
-			case 0x8C000000: //LW TODO
-				if(immediate&sign15){immediate += 0xFFFF0000;}
-				vAddr = immediate+CURRENT_STATE.REGS[rs];
-				if(vAddr & 0x00000003){break;}
-				result = CURRENT_STATE.REGS[rs+immediate];
-				if(result&sign15){result += 0xFFFF0000;}
+			case 0x8C000000: //LW
+				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
+				vAddr = rs + immediate;
+				if((vAddr) & 0x00000003){break;}
+				result = mem_read_32(vAddr);
+				NEXT_STATE.REGS[rt] = result;
 				break;
-			case 0x80000000: //LB TODO
+			case 0x80000000: //LB
+				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
+				vAddr = rs + immediate;
+				if((vAddr) & 0x00000001){break;}
+				result = mem_read_32(vAddr) & 0x000000FF;//***Double check this***
+				if(result&sign7){result += 0xFFFFFF00;}//sign extend result
+				NEXT_STATE.REGS[rt] = result;
 				break;
-			case 0x84000000: //LH TODO
+			case 0x84000000: //LH
+				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
+				vAddr = rs + immediate;
+				if((vAddr) & 0x00000001){break;}
+				result = mem_read_32(vAddr) & 0x0000FFFF;//***Double check this***
+				if(result&sign15){result += 0xFFFF0000;}//sign extend result
+				NEXT_STATE.REGS[rt] = result;
 				break;
-			case 0xAC000000: //SW TODO
+			case 0xAC000000: //SW
+				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
+				vAddr = rs + immediate;
+				if((vAddr) & 0x00000003){break;}
+				mem_write_32(vAddr, CURRENT_STATE.REGS[rt]);
 				break;
-			case 0xA0000000: //SB TODO
+			case 0xA0000000: //SB
+				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
+				vAddr = rs + immediate;
+				if((vAddr) & 0x00000001){break;}//address error exception
+				mem_write_32(vAddr, (CURRENT_STATE.REGS[rt] & 0x000000FF));
 				break;
-			case 0xA4000000: //SH TODO
+			case 0xA4000000: //SH
+				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
+				vAddr = rs + immediate;
+				if((vAddr) & 0x00000001){break;}//address error exception
+				mem_write_32(vAddr, (CURRENT_STATE.REGS[rt] & 0x0000FFFF));
 				break;
 			case 0x10000000: //BEQ
 				immediate = immediate << 2;
@@ -562,11 +600,6 @@ void print_program(){
 	uint32_t rs, rt, rd, sa, immediate, target;
 
 	instr = mem_read_32(CURRENT_STATE.PC);
-
-	if(instr == 0x0000000C){
-		//SOMETHING HERE
-	}//SIMULATION FINISHED
-
 	rs = (instr&0x03E00000) >> 21;
 	rt = (instr&0x001F0000) >> 16;
 	rd = (instr&0x0000F800) >> 11;
@@ -628,10 +661,10 @@ void print_program(){
 			case 0x00000012: //MFLO
 				printf("MFLO 0x%08x\n", rd);
 				break;
-			case 0x00000011: //MTHI TODO
+			case 0x00000011: //MTHI
 				printf("MTHI 0x%08x\n", rs);
 				break;
-			case 0x00000013: //MTLO TODO
+			case 0x00000013: //MTLO
 				printf("MTLO 0x%08x\n", rs);
 				break;
 			case 0x00000008: //JR
@@ -683,17 +716,23 @@ void print_program(){
 			case 0x28000000: //SLTI
 				printf("SLTI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
 				break;
-			case 0x8C000000: //LW TODO
+			case 0x8C000000: //LW
+				printf("LW 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
 				break;
-			case 0x80000000: //LB TODO
+			case 0x80000000: //LB
+				printf("LB 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
 				break;
-			case 0x84000000: //LH TODO
+			case 0x84000000: //LH
+				printf("LH 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
 				break;
-			case 0xAC000000: //SW TODO
+			case 0xAC000000: //SW -- SW rt, offset(base)
+				printf("SW 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
 				break;
-			case 0xA0000000: //SB TODO
+			case 0xA0000000: //SB
+				printf("SB 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
 				break;
-			case 0xA4000000: //SH TODO
+			case 0xA4000000: //SH
+				printf("SH 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
 				break;
 			case 0x10000000: //BEQ
 				printf("BEQ 0x%08x, 0x%08x, 0x%08x\n", rs, rt, immediate);
@@ -727,6 +766,9 @@ void print_program(){
 /* main                                                                                                                                   */
 /***************************************************************/
 int main(int argc, char *argv[]) {
+	HI_CTR = 0x0;
+	LO_CTR = 0x0;
+
 	printf("\n**************************\n");
 	printf("Welcome to MU-MIPS SIM...\n");
 	printf("**************************\n\n");

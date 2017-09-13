@@ -55,7 +55,7 @@ CPU_State CURRENT_STATE, NEXT_STATE;
 int RUN_FLAG;	/* run flag*/
 uint32_t INSTRUCTION_COUNT;
 uint32_t PROGRAM_SIZE; /*in words*/
-
+uint32_t HI_CTR, LO_CTR;
 char prog_file[32];
 
 
@@ -77,4 +77,3 @@ void load_program();
 void handle_instruction(); /*IMPLEMENT THIS*/
 void initialize();
 void print_program(); /*IMPLEMENT THIS*/
-
