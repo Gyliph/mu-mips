@@ -497,14 +497,14 @@ void handle_instruction()
 				break;
 			case 0x8C000000: //LW
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
-				vAddr = rs + immediate;
+				vAddr = CURRENT_STATE.REGS[rs] + immediate;
 				if((vAddr) & 0x00000003){break;}
 				result = mem_read_32(vAddr);
 				NEXT_STATE.REGS[rt] = result;
 				break;
 			case 0x80000000: //LB
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
-				vAddr = rs + immediate;
+				vAddr = CURRENT_STATE.REGS[rs] + immediate;
 				if((vAddr) & 0x00000001){break;}
 				result = mem_read_32(vAddr) & 0x000000FF;//***Double check this***
 				if(result&sign7){result += 0xFFFFFF00;}//sign extend result
@@ -512,7 +512,7 @@ void handle_instruction()
 				break;
 			case 0x84000000: //LH
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
-				vAddr = rs + immediate;
+				vAddr = CURRENT_STATE.REGS[rs] + immediate;
 				if((vAddr) & 0x00000001){break;}
 				result = mem_read_32(vAddr) & 0x0000FFFF;//***Double check this***
 				if(result&sign15){result += 0xFFFF0000;}//sign extend result
@@ -520,19 +520,19 @@ void handle_instruction()
 				break;
 			case 0xAC000000: //SW
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
-				vAddr = rs + immediate;
+				vAddr = CURRENT_STATE.REGS[rs] + immediate;
 				if((vAddr) & 0x00000003){break;}
 				mem_write_32(vAddr, CURRENT_STATE.REGS[rt]);
 				break;
 			case 0xA0000000: //SB
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
-				vAddr = rs + immediate;
+				vAddr = CURRENT_STATE.REGS[rs] + immediate;
 				if((vAddr) & 0x00000001){break;}//address error exception
 				mem_write_32(vAddr, (CURRENT_STATE.REGS[rt] & 0x000000FF));
 				break;
 			case 0xA4000000: //SH
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
-				vAddr = rs + immediate;
+				vAddr = CURRENT_STATE.REGS[rs] + immediate;
 				if((vAddr) & 0x00000001){break;}//address error exception
 				mem_write_32(vAddr, (CURRENT_STATE.REGS[rt] & 0x0000FFFF));
 				break;
