@@ -347,15 +347,15 @@ void handle_instruction()
 			case 0x00000018: //MULT
 				if(HI_CTR == 0x0 && LO_CTR == 0x0){
 					result64 = CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt];
-					NEXT_STATE.LO = (uint32_t)(result64&0x00000000FFFFFFFF);
-					NEXT_STATE.HI = (uint32_t)((result64&0xFFFFFFFF00000000)>>32);
+					NEXT_STATE.LO = result64&0x00000000FFFFFFFF;
+					NEXT_STATE.HI = (result64&0xFFFFFFFF00000000)>>32;
 				}
 				break;
 			case 0x00000019: //MULTU
 				if(HI_CTR == 0x0 && LO_CTR == 0x0){
-					result64 = CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt];
-					NEXT_STATE.LO = (uint32_t)(result64&0x00000000FFFFFFFF);
-					NEXT_STATE.HI = (uint32_t)((result64&0xFFFFFFFF00000000)>>32);
+					result64 = (uint32_t)(CURRENT_STATE.REGS[rs] * CURRENT_STATE.REGS[rt]);
+					NEXT_STATE.LO = result64&0x00000000FFFFFFFF;
+					NEXT_STATE.HI = (result64&0xFFFFFFFF00000000)>>32;
 				}
 				break;
 			case 0x0000001A: //DIV
@@ -366,8 +366,8 @@ void handle_instruction()
 				break;
 			case 0x0000001B: //DIVU
 				if(HI_CTR == 0x0 && LO_CTR == 0x0){
-					NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt];
-					NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt];
+					NEXT_STATE.LO = (uint32_t)(CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt]);
+					NEXT_STATE.HI = (uint32_t)(CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt]);
 				}
 				break;
 			case 0x00000024: //AND
@@ -717,22 +717,22 @@ void print_program(){
 				printf("SLTI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
 				break;
 			case 0x8C000000: //LW
-				printf("LW 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
+				printf("LW 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
 				break;
 			case 0x80000000: //LB
-				printf("LB 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
+				printf("LB 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
 				break;
 			case 0x84000000: //LH
-				printf("LH 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
+				printf("LH 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
 				break;
 			case 0xAC000000: //SW -- SW rt, offset(base)
-				printf("SW 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
+				printf("SW 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
 				break;
 			case 0xA0000000: //SB
-				printf("SB 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
+				printf("SB 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
 				break;
 			case 0xA4000000: //SH
-				printf("SH 0x%08x, 0x%08x(0x%08x)",rt, immediate, rs);
+				printf("SH 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
 				break;
 			case 0x10000000: //BEQ
 				printf("BEQ 0x%08x, 0x%08x, 0x%08x\n", rs, rt, immediate);
