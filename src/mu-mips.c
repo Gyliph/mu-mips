@@ -611,70 +611,70 @@ void print_program(){
 		opc = instr&0x0000003F;
 		switch(opc){
 			case 0x00000020: //ADD
-				printf("ADD 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("ADD %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000021: //ADDU
-				printf("ADDU 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("ADDU %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000022: //SUB
-				printf("SUB 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("SUB %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000023: //SUBU
-				printf("SUBU 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("SUBU %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000018: //MULT
-				printf("MULT 0x%08x, 0x%08x\n", rs, rt);
+				printf("MULT %s, %s\n", REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000019: //MULTU
-				printf("MULTU 0x%08x, 0x%08x\n", rs, rt);
+				printf("MULTU %s, %s\n", REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x0000001A: //DIV
-				printf("DIV 0x%08x, 0x%08x\n", rs, rt);
+				printf("DIV %s, %s\n", REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x0000001B: //DIVU
-				printf("DIVU 0x%08x, 0x%08x\n", rs, rt);
+				printf("DIVU %s, %s\n", REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000024: //AND
-				printf("AND 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("AND %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000025: //OR
-				printf("OR 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("OR %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000026: //XOR
-				printf("XOR 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("XOR %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000027: //NOR
-				printf("NOR 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("NOR %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x0000002A: //SLT
-				printf("SLT 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("SLT %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000002: //SRL
-				printf("SLT 0x%08x, 0x%08x, 0x%08x\n", rd, rs, rt);
+				printf("SLT %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs], REG_LOOKUP[rt]);
 				break;
 			case 0x00000003: //SRA
-				printf("SRA 0x%08x, 0x%08x, 0x%08x\n", rd, rt, sa);
+				printf("SRA %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rt], REG_LOOKUP[sa]);
 				break;
 			case 0x00000010: //MFHI
-				printf("MFHI 0x%08x\n", rd);
+				printf("MFHI %s\n", REG_LOOKUP[rd]);
 				break;
 			case 0x00000012: //MFLO
-				printf("MFLO 0x%08x\n", rd);
+				printf("MFLO %s\n", REG_LOOKUP[rd]);
 				break;
 			case 0x00000011: //MTHI
-				printf("MTHI 0x%08x\n", rs);
+				printf("MTHI %s\n", REG_LOOKUP[rs]);
 				break;
 			case 0x00000013: //MTLO
-				printf("MTLO 0x%08x\n", rs);
+				printf("MTLO %s\n", REG_LOOKUP[rs]);
 				break;
 			case 0x00000008: //JR
-				printf("JR 0x%08x\n", rs);
+				printf("JR %s\n", REG_LOOKUP[rs]);
 				break;
 			case 0x00000009: //JALR
-				printf("JALR 0x%08x, 0x%08x\n", rd, rs);
+				printf("JALR %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rs]);
 				break;
 			case 0x00000000: //SLL
-				printf("SLL 0x%08x, 0x%08x, 0x%08x\n", rd, rt, sa);
+				printf("SLL %s, %s, %s\n", REG_LOOKUP[rd], REG_LOOKUP[rt], REG_LOOKUP[sa]);
 				break;
 			case 0x0000000C: //SYSCALL
 				printf("SYSCALL\n");
@@ -687,10 +687,10 @@ void print_program(){
 		opc = instr&0x001F0000;
 		switch(opc){
 			case 0x00010000: //BGEZ
-				printf("BGEZ 0x%08x, 0x%08x\n", rs, immediate);
+				printf("BGEZ %s, 0x%08x\n", REG_LOOKUP[rs], immediate);
 				break;
 			case 0x00000000: //BLTZ
-				printf("BLTZ 0x%08x, 0x%08x\n", rs, immediate);
+				printf("BLTZ %s, 0x%08x\n", REG_LOOKUP[rs], immediate);
 				break;
 			default:
 				printf("REGIMM ERROR\n");
@@ -699,52 +699,52 @@ void print_program(){
 	}else{//NORMAL INSTRUCTION
 		switch(opc){
 			case 0x20000000: //ADDI
-				printf("ADDI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
+				printf("ADDI %s, %s, 0x%08x\n", REG_LOOKUP[rt], REG_LOOKUP[rs], immediate);
 				break;
 			case 0x24000000: //ADDIU
-				printf("ADDIU 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
+				printf("ADDIU %s, %s, 0x%08x\n", REG_LOOKUP[rt], REG_LOOKUP[rs], immediate);
 				break;
 			case 0x30000000: //ANDI
-				printf("ANDI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
+				printf("ANDI %s, %s, 0x%08x\n", REG_LOOKUP[rt], REG_LOOKUP[rs], immediate);
 				break;
 			case 0x34000000: //ORI
-				printf("ORI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
+				printf("ORI %s, %s, 0x%08x\n", REG_LOOKUP[rt], REG_LOOKUP[rs], immediate);
 				break;
 			case 0x38000000: //XORI
-				printf("XORI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
+				printf("XORI %s, %s, 0x%08x\n", REG_LOOKUP[rt], REG_LOOKUP[rs], immediate);
 				break;
 			case 0x28000000: //SLTI
-				printf("SLTI 0x%08x, 0x%08x, 0x%08x\n", rt, rs, immediate);
+				printf("SLTI %s, %s, 0x%08x\n", REG_LOOKUP[rt], REG_LOOKUP[rs], immediate);
 				break;
 			case 0x8C000000: //LW
-				printf("LW 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
+				printf("LW %s, 0x%08x(%s)", REG_LOOKUP[rt], immediate, REG_LOOKUP[rs]);
 				break;
 			case 0x80000000: //LB
-				printf("LB 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
+				printf("LB %s, 0x%08x(%s)", REG_LOOKUP[rt], immediate, REG_LOOKUP[rs]);
 				break;
 			case 0x84000000: //LH
-				printf("LH 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
+				printf("LH %s, 0x%08x(%s)", REG_LOOKUP[rt], immediate, REG_LOOKUP[rs]);
 				break;
 			case 0xAC000000: //SW -- SW rt, offset(base)
-				printf("SW 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
+				printf("SW %s, 0x%08x(%s)", REG_LOOKUP[rt], immediate, REG_LOOKUP[rs]);
 				break;
 			case 0xA0000000: //SB
-				printf("SB 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
+				printf("SB %s, 0x%08x(%s)", REG_LOOKUP[rt], immediate, REG_LOOKUP[rs]);
 				break;
 			case 0xA4000000: //SH
-				printf("SH 0x%08x, 0x%08x(0x%08x)", rt, immediate, rs);
+				printf("SH %s, 0x%08x(%s)", REG_LOOKUP[rt], immediate, REG_LOOKUP[rs]);
 				break;
 			case 0x10000000: //BEQ
-				printf("BEQ 0x%08x, 0x%08x, 0x%08x\n", rs, rt, immediate);
+				printf("BEQ %s, %s, 0x%08x\n", REG_LOOKUP[rs], REG_LOOKUP[rt], immediate);
 				break;
 			case 0x14000000: //BNE
-				printf("BNE 0x%08x, 0x%08x, 0x%08x\n", rs, rt, immediate);
+				printf("BNE %s, %s, 0x%08x\n", REG_LOOKUP[rs], REG_LOOKUP[rt], immediate);
 				break;
 			case 0x18000000: //BLEZ
-				printf("BLEZ 0x%08x, 0x%08x\n", rs, immediate);
+				printf("BLEZ %s, 0x%08x\n", REG_LOOKUP[rs], immediate);
 				break;
 			case 0x1C000000: //BGTZ
-				printf("BGTZ 0x%08x, 0x%08x\n", rs, immediate);
+				printf("BGTZ %s, 0x%08x\n", REG_LOOKUP[rs], immediate);
 				break;
 			case 0x08000000: //J
 				printf("J 0x%08x\n", target);
@@ -753,7 +753,7 @@ void print_program(){
 				printf("JAL 0x%08x\n", target);
 				break;
 			case 0x3C000000: //LUI
-				printf("LUI 0x%08x, 0x%08x\n", rt, immediate);
+				printf("LUI %s, 0x%08x\n", REG_LOOKUP[rt], immediate);
 				break;
 			default:
 				printf("NORMAL ERROR\n");
