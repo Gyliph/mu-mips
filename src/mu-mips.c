@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
+#include <limits.h>
 
 #include "mu-mips.h"
 
@@ -330,7 +331,12 @@ void handle_instruction()
 		switch(opc){
 			case 0x00000020: //ADD
 				result = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
-				if(result >= immediate){NEXT_STATE.REGS[rd] = result;}
+				if(CURRENT_STATE.REGS[rs] > 0 && CURRENT_STATE.REGS[rt] > UINT_MAX - CURRENT_STATE.REGS[rs]){
+					/*handle overflow*/
+				}else if((CURRENT_STATE.REGS[rs] < 0 && CURRENT_STATE.REGS[rt] < UINT_MIN - (CURRENT_STATE.REGS[rs]){
+					/*handle overflow*/
+				}
+				NEXT_STATE.REGS[rd] = result;
 				break;
 			case 0x00000021: //ADDU
 				result = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
@@ -338,7 +344,10 @@ void handle_instruction()
 				break;
 			case 0x00000022: //SUB
 				result = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
-				if(result <= immediate){NEXT_STATE.REGS[rd] = result;}
+				if(CURRENT_STATE.REGS[rt] > CURRENT_STATE.REGS[rs]){
+					/*handle overflow*/
+				}
+				NEXT_STATE.REGS[rd] = result;
 				break;
 			case 0x00000023: //SUBU
 				result = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
