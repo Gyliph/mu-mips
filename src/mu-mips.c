@@ -319,7 +319,7 @@ void handle_instruction()
 	rs = (instr&0x03E00000) >> 21;
 	rt = (instr&0x001F0000) >> 16;
 	rd = (instr&0x0000F800) >> 11;
-	sa = (instr&0x000001C0) >> 6;
+	sa = (instr&0x000007C0) >> 6;
 	immediate = instr&0x0000FFFF;
 	target = instr&0x03FFFFFF;
 	sign7 = 0x00000080; // 0000 0000 0000 0000 0000 0000 0000 1000 0000
@@ -328,12 +328,13 @@ void handle_instruction()
 	opc = instr&0xFC000000;
 	if(opc == 0x00000000){//SPECIAL INSTRUCTION
 		opc = instr&0x0000003F;
+		printf("Special OPC: %08x\n", opc);
 		switch(opc){
 			case 0x00000020: //ADD
 				result = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
-				if(CURRENT_STATE.REGS[rs] > 0 && CURRENT_STATE.REGS[rt] > UINT_MAX - CURRENT_STATE.REGS[rs]){
+				if(CURRENT_STATE.REGS[rs] > 0 && CURRENT_STATE.REGS[rt] > (UINT_MAX - CURRENT_STATE.REGS[rs])){
 					/*handle overflow*/
-				}else if((CURRENT_STATE.REGS[rs] < 0 && CURRENT_STATE.REGS[rt] < UINT_MIN - (CURRENT_STATE.REGS[rs]){
+				}else if(CURRENT_STATE.REGS[rs] < 0 && CURRENT_STATE.REGS[rt] < (UINT_MAX - CURRENT_STATE.REGS[rs])){
 					/*handle overflow*/
 				}
 				NEXT_STATE.REGS[rd] = result;
@@ -454,6 +455,7 @@ void handle_instruction()
 		}
 	}else if(opc == 0x04000000){//REGIMM INSTRUCTION
 		opc = instr&0x001F0000;
+		printf("REGIMM OPC: %08x\n", opc);
 		switch(opc){
 			case 0x00010000: //BGEZ
 				immediate = immediate << 2;
@@ -474,6 +476,7 @@ void handle_instruction()
 				break;
 		}
 	}else{//NORMAL INSTRUCTION
+		printf("Normal OPC: %08x\n", opc);
 		switch(opc){
 			case 0x20000000: //ADDI
 				if(immediate&sign15){immediate += 0xFFFF0000;}
@@ -507,7 +510,7 @@ void handle_instruction()
 			case 0x8C000000: //LW
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
 				vAddr = CURRENT_STATE.REGS[rs] + immediate;
-				if((vAddr) & 0x00000003){break;}
+				if((vAddr&0x00000003)>0){break;}
 				result = mem_read_32(vAddr);
 				NEXT_STATE.REGS[rt] = result;
 				break;
@@ -530,8 +533,15 @@ void handle_instruction()
 			case 0xAC000000: //SW
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
 				vAddr = CURRENT_STATE.REGS[rs] + immediate;
-				if((vAddr) & 0x00000003){break;}
-				mem_write_32(vAddr, CURRENT_STATE.REGS[rt]);
+				if((vAddr&0x00000003)>0){break;}
+				printf("\nStoring Word\n");
+
+				uint32_t tmp1 = 0x10010000;
+				uint32_t tmp2 = 0x10101010;
+
+				printf("vAddr: %08x\n", tmp1);
+				printf("value: %08x\n\n", tmp2/*CURRENT_STATE.REGS[rt]*/);
+				mem_write_32(tmp1, tmp2);
 				break;
 			case 0xA0000000: //SB
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
@@ -569,7 +579,7 @@ void handle_instruction()
 			case 0x1C000000: //BGTZ
 				immediate = immediate << 2;
 				if((immediate>>2)&sign15){immediate += 0xFFFC0000;}
-				if(CURRENT_STATE.REGS[rs]&sign31 && CURRENT_STATE.REGS[rs]==0x0){
+				if((CURRENT_STATE.REGS[rs]&sign31)==0x0 && CURRENT_STATE.REGS[rs]!=0x0){
 					NEXT_STATE.PC = CURRENT_STATE.PC + immediate;
 				}
 				break;
