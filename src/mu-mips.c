@@ -328,7 +328,7 @@ void handle_instruction()
 	opc = instr&0xFC000000;
 	if(opc == 0x00000000){//SPECIAL INSTRUCTION
 		opc = instr&0x0000003F;
-		printf("Special OPC: %08x\n", opc);
+		//printf("Special OPC: %08x\n", opc);
 		switch(opc){
 			case 0x00000020: //ADD
 				result = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
@@ -455,7 +455,7 @@ void handle_instruction()
 		}
 	}else if(opc == 0x04000000){//REGIMM INSTRUCTION
 		opc = instr&0x001F0000;
-		printf("REGIMM OPC: %08x\n", opc);
+		//printf("REGIMM OPC: %08x\n", opc);
 		switch(opc){
 			case 0x00010000: //BGEZ
 				immediate = immediate << 2;
@@ -476,7 +476,7 @@ void handle_instruction()
 				break;
 		}
 	}else{//NORMAL INSTRUCTION
-		printf("Normal OPC: %08x\n", opc);
+		//printf("Normal OPC: %08x\n", opc);
 		switch(opc){
 			case 0x20000000: //ADDI
 				if(immediate&sign15){immediate += 0xFFFF0000;}
@@ -534,14 +534,7 @@ void handle_instruction()
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
 				vAddr = CURRENT_STATE.REGS[rs] + immediate;
 				if((vAddr&0x00000003)>0){break;}
-				printf("\nStoring Word\n");
-
-				uint32_t tmp1 = 0x10010000;
-				uint32_t tmp2 = 0x10101010;
-
-				printf("vAddr: %08x\n", tmp1);
-				printf("value: %08x\n\n", tmp2/*CURRENT_STATE.REGS[rt]*/);
-				mem_write_32(tmp1, tmp2);
+				mem_write_32(vAddr, CURRENT_STATE.REGS[rt]);
 				break;
 			case 0xA0000000: //SB
 				if(immediate&sign15){immediate += 0xFFFF0000;}//sign extend offset
